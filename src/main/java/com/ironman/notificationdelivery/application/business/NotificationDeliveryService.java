@@ -4,5 +4,5 @@ import com.ironman.notificationdelivery.application.model.event.PaymentOrderInit
 
 public interface NotificationDeliveryService {
 
-  void deliver(PaymentOrderInitiationTransaction event);
+  void deliver(String notificationId, PaymentOrderInitiationTransaction event);
 }

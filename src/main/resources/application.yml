@@ -7,9 +7,18 @@ quarkus:
   jackson:
     fail-on-unknown-properties: false
 
+  redis:
+    hosts: redis://localhost:6379
+    timeout: 5s
+
 kafka:
   bootstrap:
     servers: localhost:29092
+
+notification:
+  redis:
+    key-prefix: notification-delivery
+    ttl: 30d
 
 mp:
   messaging:

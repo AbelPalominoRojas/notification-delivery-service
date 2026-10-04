@@ -55,6 +55,12 @@
             <artifactId>quarkus-messaging-kafka</artifactId>
         </dependency>
 
+        <!-- Redis persistence -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-redis-client</artifactId>
+        </dependency>
+
         <!-- Jackson object mapping -->
         <dependency>
             <groupId>io.quarkus</groupId>
