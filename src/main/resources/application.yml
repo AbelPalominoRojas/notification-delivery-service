@@ -1,0 +1,35 @@
+# Application configuration
+quarkus:
+  http:
+    root-path: /api/v1
+    port: 8088
+
+  jackson:
+    fail-on-unknown-properties: false
+
+kafka:
+  bootstrap:
+    servers: localhost:29092
+
+mp:
+  messaging:
+    incoming:
+      payment-order-initiation-in:
+        connector: smallrye-kafka
+        topic: payment-order-initiation
+        group:
+          id: notification-delivery-service
+        auto:
+          offset:
+            reset: earliest
+        key:
+          deserializer: org.apache.kafka.common.serialization.StringDeserializer
+        value:
+          deserializer: com.ironman.notificationdelivery.application.kafka.deserializer.PaymentOrderInitiationTransactionDeserializer
+        failure-strategy: dead-letter-queue
+        dead-letter-queue:
+          topic: payment-order-initiation-dlq
+          key:
+            serializer: org.apache.kafka.common.serialization.StringSerializer
+          value:
+            serializer: io.quarkus.kafka.client.serialization.ObjectMapperSerializer
