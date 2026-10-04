@@ -2,7 +2,7 @@ package com.ironman.notificationdelivery.application.kafka;
 
 import com.ironman.notificationdelivery.application.business.NotificationDeliveryService;
 import com.ironman.notificationdelivery.application.model.event.PaymentOrderInitiationTransaction;
-import io.smallrye.common.annotation.Blocking;
+import io.smallrye.reactive.messaging.annotations.Blocking;
 import io.smallrye.reactive.messaging.kafka.api.IncomingKafkaRecordMetadata;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Objects;
@@ -20,7 +20,7 @@ public class PaymentOrderInitiationConsumer {
 
   private final NotificationDeliveryService notificationDeliveryService;
 
-  @Blocking
+  @Blocking(ordered = false)
   @Incoming("payment-order-initiation-in")
   public CompletionStage<Void> consume(Message<PaymentOrderInitiationTransaction> message) {
     try {

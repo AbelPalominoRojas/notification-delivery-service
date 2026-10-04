@@ -11,11 +11,15 @@ public enum ExceptionCatalog {
   INVALID_EVENT_PAYLOAD(
       "NODS0001",
       ExceptionType.BAD_REQUEST,
-      "Invalid payment order initiation event payload: missing payer reference."),
+      "Invalid payment order initiation event payload: missing %s."),
   APPLICATION_ERROR(
       "NODS0002",
       ExceptionType.INTERNAL_SERVER_ERROR,
-      "An unexpected error occurred, please try again later.");
+      "An unexpected error occurred, please try again later."),
+  NOTIFICATION_PERSISTENCE_ERROR(
+      "NODS0003",
+      ExceptionType.INTERNAL_SERVER_ERROR,
+      "Failed to persist the notification record, please try again later.");
 
   private final String code;
   private final ExceptionType exceptionType;

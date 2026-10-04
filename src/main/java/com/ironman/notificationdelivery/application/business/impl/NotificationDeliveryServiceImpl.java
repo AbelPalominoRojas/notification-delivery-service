@@ -3,6 +3,7 @@ package com.ironman.notificationdelivery.application.business.impl;
 import com.ironman.notificationdelivery.application.business.NotificationDeliveryService;
 import com.ironman.notificationdelivery.application.exception.ApplicationException;
 import com.ironman.notificationdelivery.application.exception.ExceptionCatalog;
+import com.ironman.notificationdelivery.application.model.event.Amount;
 import com.ironman.notificationdelivery.application.model.event.PaymentOrderInitiationTransaction;
 import com.ironman.notificationdelivery.application.model.notification.NotificationRecord;
 import com.ironman.notificationdelivery.application.repository.NotificationRecordRepository;
@@ -22,7 +23,7 @@ public class NotificationDeliveryServiceImpl implements NotificationDeliveryServ
   public void deliver(String notificationId, PaymentOrderInitiationTransaction event) {
     try {
       var payerIdentification = extractPayerIdentification(event);
-      var amount = event.getPaymentTransaction().getPaymentTransactionAmount();
+      var amount = extractAmount(event);
 
       var record =
           NotificationRecord.builder()
@@ -34,7 +35,7 @@ public class NotificationDeliveryServiceImpl implements NotificationDeliveryServ
               .deliveredAt(Instant.now())
               .build();
 
-      if (!notificationRecordRepository.saveIfAbsent(record)) {
+      if (!saveNotificationRecord(record)) {
         log.info("Notification {} was already delivered, skipping duplicate event", notificationId);
         return;
       }
@@ -54,12 +55,25 @@ public class NotificationDeliveryServiceImpl implements NotificationDeliveryServ
     }
   }
 
+  private boolean saveNotificationRecord(NotificationRecord record) {
+    try {
+      return notificationRecordRepository.saveIfAbsent(record);
+    } catch (Exception e) {
+      log.error(
+          "Failed to persist notification record {} in Redis: {}",
+          record.getId(),
+          e.getMessage(),
+          e);
+      throw ExceptionCatalog.NOTIFICATION_PERSISTENCE_ERROR.buildException();
+    }
+  }
+
   private String extractPayerIdentification(PaymentOrderInitiationTransaction event) {
     if (event == null
         || event.getPayerReference() == null
         || event.getPayerReference().getPartyIdentification() == null
         || event.getPayerReference().getPartyIdentification().getPartyIdentification() == null) {
-      throw ExceptionCatalog.INVALID_EVENT_PAYLOAD.buildException();
+      throw ExceptionCatalog.INVALID_EVENT_PAYLOAD.buildException("payer reference");
     }
 
     return event
@@ -67,5 +81,22 @@ public class NotificationDeliveryServiceImpl implements NotificationDeliveryServ
         .getPartyIdentification()
         .getPartyIdentification()
         .getIdentifierValue();
+  }
+
+  private Amount extractAmount(PaymentOrderInitiationTransaction event) {
+    if (event.getPaymentTransaction() == null
+        || event.getPaymentTransaction().getPaymentTransactionAmount() == null
+        || event.getPaymentTransaction().getPaymentTransactionAmount().getAmountValue() == null
+        || event.getPaymentTransaction().getPaymentTransactionAmount().getAmountCurrency() == null
+        || event
+                .getPaymentTransaction()
+                .getPaymentTransactionAmount()
+                .getAmountCurrency()
+                .getAccountCurrencyType()
+            == null) {
+      throw ExceptionCatalog.INVALID_EVENT_PAYLOAD.buildException("payment transaction amount");
+    }
+
+    return event.getPaymentTransaction().getPaymentTransactionAmount();
   }
 }
